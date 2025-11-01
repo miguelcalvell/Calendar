@@ -36,7 +36,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   <I18N.Provider value={{ t, lang, setLang }}>
     {children}
   </I18N.Provider>
-}
+)
 
 export function useT() {
   const ctx = useContext(I18N)

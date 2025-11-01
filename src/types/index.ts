@@ -5,3 +5,12 @@ export interface MaintenanceTask{ id:string; type:'limpieza'|'agua'|'alimento'|'
 export interface HealthRecord{ id:string; animalId?:string; date:string; type:'vacuna'|'revision'|'tratamiento'; product?:string; dose?:string; notes?:string }
 export interface HistoryEvent{ id:string; date:string; type:'add_animal'|'maintenance'|'health'|'update_supply'; refId?:string; summary:string }
 export interface Setting{ id:'app'; language:'es'|'en'; theme:'dark'|'light'|'system'; farmName?:string; createdAt:string; updatedAt?:string }
+export interface Supply {
+  id: string
+  name: string
+  category: 'alimento' | 'medicina' | 'bedding' | 'otro'
+  quantity: number
+  unit: 'kg' | 'L' | 'uds'
+  minStock?: number
+  updatedAt: string
+}

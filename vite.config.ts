@@ -1,11 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
+import { VitePWA } from 'vite-plugin-pwa'
 
-const base = process.env.BASE_PATH || '/calendar/'
+const base = process.env.BASE_PATH || '/Calendar/'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   base,
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
@@ -13,7 +12,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'offline.html'],
+      includeAssets: [
+        'icons/icon-192.png',
+        'icons/icon-512.png',
+        'icons/maskable-512.png',
+        'offline.html'
+      ],
       manifest: {
         name: 'Gallinero',
         short_name: 'Gallinero',
@@ -33,11 +37,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
         navigateFallback: 'index.html'
-      },
-      devOptions: { enabled: true }
+      }
     })
   ],
   server: { port: 5173 },
-  preview: { port: 4173 },
-  test: { environment: 'jsdom', globals: true }
+  preview: { port: 4173 }
 })

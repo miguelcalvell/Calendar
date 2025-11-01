@@ -32,7 +32,10 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     }
   }, [lang])
 
-  return <I18N.Provider value={{ t, lang, setLang }}>{children}</I18N.Provider>
+  return (
+  <I18N.Provider value={{ t, lang, setLang }}>
+    {children}
+  </I18N.Provider>
 }
 
 export function useT() {

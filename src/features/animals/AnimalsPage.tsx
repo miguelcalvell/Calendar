@@ -21,6 +21,25 @@ export default function AnimalsPage() {
     })
   }, [animals])
 
+  const groupedAnimals = useMemo(() => {
+    const groups = new Map<Animal['type'], Animal[]>()
+    for (const animal of sortedAnimals) {
+      const current = groups.get(animal.type)
+      if (current) {
+        current.push(animal)
+      } else {
+        groups.set(animal.type, [animal])
+      }
+    }
+    return Array.from(groups.entries())
+      .map(([type, list]) => ({
+        type,
+        label: ANIMAL_TYPE_LABELS[type] ?? type,
+        animals: list,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [sortedAnimals])
+
   const handleRemoveAnimal = async (animal: Animal) => {
     const label = ANIMAL_TYPE_LABELS[animal.type] ?? 'Ave'
     const confirmed = window.confirm(`¿Eliminar ${label} del corral? Esta acción no se puede deshacer.`)
@@ -54,9 +73,21 @@ export default function AnimalsPage() {
             <CardDescription>Resumen de todas las aves registradas.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            {sortedAnimals.length ? (
-              sortedAnimals.map((animal) => (
-                <AnimalRow key={animal.id} animal={animal} onRemove={handleRemoveAnimal} />
+            {groupedAnimals.length ? (
+              groupedAnimals.map((group) => (
+                <details key={group.type} className="overflow-hidden rounded-lg border border-white/10 bg-slate-900/40" open>
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-white/5 px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+                    <span>{group.label}</span>
+                    <Badge className="border-emerald-500/40 bg-emerald-500/15 text-emerald-100">
+                      {group.animals.length} {group.animals.length === 1 ? 'ave' : 'aves'}
+                    </Badge>
+                  </summary>
+                  <div className="space-y-2 px-3 py-3">
+                    {group.animals.map((animal) => (
+                      <AnimalRow key={animal.id} animal={animal} onRemove={handleRemoveAnimal} />
+                    ))}
+                  </div>
+                </details>
               ))
             ) : (
               <div className="rounded-md border border-dashed border-white/10 p-6 text-center text-sm text-slate-400">

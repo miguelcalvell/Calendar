@@ -400,11 +400,33 @@ export default function Dashboard() {
   const [resultados, setResultados] = useState<DashboardResults | null>(null)
   const [isDirty, setIsDirty] = useState(false)
   const animals = useLiveQuery(() => db.animals.toArray(), [], []) ?? []
+  const hasResultados = resultados != null
 
   useEffect(() => {
     if (isDirty) return
     setEntries(buildEntriesFromAnimals(animals))
   }, [animals, isDirty])
+
+  useEffect(() => {
+    if (!hasResultados) return
+    if (isDirty) return
+    const activeAnimals = animals.filter((animal) => animal.status === 'activo')
+    if (activeAnimals.length === 0) {
+      setResultados(null)
+      return
+    }
+    try {
+      const aves = buildAveInputsFromAnimals(activeAnimals)
+      const lote = calcularLote(
+        { id: 'lote_ui', aves },
+        { ...entorno, n_aves_total: activeAnimals.length },
+      )
+      const agregados = aggregateLote(lote)
+      setResultados(agregados)
+    } catch (error) {
+      console.error('Error al recalcular automáticamente el lote:', error)
+    }
+  }, [animals, entorno, hasResultados, isDirty])
 
   const validation = useMemo(() => validateEntries(entries), [entries])
   const totalAves = validation.totalAves

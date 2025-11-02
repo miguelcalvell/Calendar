@@ -3,8 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- ✅ Fuerza que los paths relativos apunten a /Calendar/ -->
-    <base href="/Calendar/">
     <link rel="manifest" href="manifest.webmanifest" />
     <meta name="theme-color" content="#111827" />
     <title>Gallinero</title>
@@ -12,7 +10,7 @@
   <body class="bg-black text-white">
     <div id="root"><noscript>Necesitas habilitar JavaScript.</noscript></div>
 
-    <!-- Bootstrap HashRouter + diagnóstico -->
+    <!-- 1) Asegura HashRouter -->
     <script>
       (function () {
         if (!location.hash) {
@@ -20,23 +18,26 @@
           if (!href.endsWith('/')) href += '/';
           location.replace(href + '#/');
         }
-        window.addEventListener('load', function () {
-          setTimeout(function () {
-            var root = document.getElementById('root');
-            if (root && root.childElementCount === 0) {
-              root.innerHTML =
-                '<div style="max-width:720px;margin:32px auto;padding:16px;background:#1f2937;border-radius:8px;font-family:system-ui;color:#e5e7eb">' +
-                '<h1 style="margin:0 0 8px">No se cargó el bundle</h1>' +
-                '<p style="margin:0 0 8px">Borra la caché del sitio <em>github.io</em> y recarga.</p>' +
-                '<p style="margin:0">URL sugerida: <code>https://miguelcalvell.github.io/Calendar/#/</code></p>' +
-                '</div>';
-            }
-          }, 3000);
-        });
       })();
     </script>
 
-    <!-- ✅ IMPORTANTE: ruta RELATIVA al entry para que en build sea "assets/..." -->
-    <script type="module" src="./src/main.tsx"></script>
+    <!-- 2) Bootstrap INFALIBLE:
+           - En dev, importa el entry de Vite
+           - En Pages, importa el bundle con nombre estable: assets/app.js -->
+    <script type="module">
+      const isProd = location.hostname.endsWith('github.io');
+      const load = isProd ? import('./assets/app.js') : import('/src/main.tsx');
+      load.catch(err => {
+        const root = document.getElementById('root');
+        if (root) {
+          root.innerHTML =
+            '<div style="max-width:720px;margin:32px auto;padding:16px;background:#1f2937;border-radius:8px;font-family:system-ui;color:#e5e7eb">' +
+            '<h1 style="margin:0 0 8px">Error cargando JS</h1>' +
+            '<pre style="white-space:pre-wrap;font-size:12px">' + String(err) + '</pre>' +
+            '</div>';
+        }
+        console.error('Boot error', err);
+      });
+    </script>
   </body>
 </html>

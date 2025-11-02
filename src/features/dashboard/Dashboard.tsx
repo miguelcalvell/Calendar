@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { Button } from '@/components/ui/button'
 import { EntornoCard, type EntornoState } from './components/EntornoCard'
 import { CatalogoCard } from './components/CatalogoCard'
@@ -8,12 +9,17 @@ import { formatDietLabel } from './utils'
 import { notify } from '@/lib/notifications'
 import {
   SPECIES_CATALOG,
+  SPECIES_TO_TYPE,
+  TYPE_TO_SPECIES,
   calcularLote,
   type AveInput,
   type LoteResultado,
   type SpeciesDefinition,
+  getDefaultPhaseForSpecies,
 } from '@/lib/calc'
-import type { DietType, SpeciesId } from '@/types'
+import type { Animal, DietType, SpeciesId } from '@/types'
+import { db } from '@/lib/db'
+import { nowIso } from '@/lib/time'
 
 const DEFAULT_ENTORNO: EntornoState = {
   T_ambiente_C: 24,
@@ -30,15 +36,17 @@ interface DashboardResults {
 
 function createEntry(speciesId: SpeciesId = 'gallina_ponedora'): LoteEntryForm {
   const species = SPECIES_CATALOG[speciesId]
-  const fase = species.defaults?.fase ?? species.dietas[0]?.fase ?? 'layer'
+  const fase = getDefaultPhaseForSpecies(speciesId)
+  const layingDefault = species?.defaults?.tasa_puesta
+  const eggDefault = species?.defaults?.peso_huevo_g
   return {
     id: crypto.randomUUID(),
     speciesId,
     phase: fase,
-    quantity: '10',
+    quantity: '1',
     weightKg: '',
-    layingRate: '',
-    eggWeight: '',
+    layingRate: layingDefault != null ? layingDefault.toString() : '',
+    eggWeight: eggDefault != null ? eggDefault.toString() : '',
   }
 }
 
@@ -107,30 +115,190 @@ function validateEntries(entries: LoteEntryForm[]): ValidationResult {
   return { errors, hasErrors, totalAves }
 }
 
-function buildAveInputs(entries: LoteEntryForm[]): AveInput[] {
+function resolveSpeciesId(animal: Animal): SpeciesId {
+  if (animal.speciesId && SPECIES_CATALOG[animal.speciesId]) {
+    return animal.speciesId
+  }
+  const fallback = TYPE_TO_SPECIES[animal.type]
+  if (fallback && SPECIES_CATALOG[fallback]) {
+    return fallback
+  }
+  return 'gallina_ponedora'
+}
+
+function buildEntriesFromAnimals(animals: Animal[]): LoteEntryForm[] {
+  const groups = new Map<string, { speciesId: SpeciesId; phase: DietType; animals: Animal[] }>()
+
+  for (const animal of animals) {
+    if (animal.status !== 'activo') continue
+    const speciesId = resolveSpeciesId(animal)
+    const species = SPECIES_CATALOG[speciesId]
+    if (!species) continue
+    const phaseCandidate = animal.dietPhase
+    const hasPhase = phaseCandidate && species.dietas.some((diet) => diet.fase === phaseCandidate)
+    const phase = hasPhase ? (phaseCandidate as DietType) : getDefaultPhaseForSpecies(speciesId)
+    const key = `${speciesId}|${phase}`
+    let group = groups.get(key)
+    if (!group) {
+      group = { speciesId, phase, animals: [] }
+      groups.set(key, group)
+    }
+    group.animals.push(animal)
+  }
+
+  const entries: LoteEntryForm[] = []
+  groups.forEach((group, key) => {
+    const weight = group.animals.find((item) => typeof item.weightKg === 'number')?.weightKg
+    const layingRate = group.animals.find((item) => typeof item.layingRate === 'number')?.layingRate
+    const eggWeight = group.animals.find((item) => typeof item.eggWeightGrams === 'number')?.eggWeightGrams
+
+    entries.push({
+      id: `existing-${key}`,
+      speciesId: group.speciesId,
+      phase: group.phase,
+      quantity: group.animals.length.toString(),
+      weightKg: weight != null ? weight.toString() : '',
+      layingRate: layingRate != null ? layingRate.toString() : '',
+      eggWeight: eggWeight != null ? eggWeight.toString() : '',
+    })
+  })
+
+  entries.sort((a, b) => {
+    const speciesA = SPECIES_CATALOG[a.speciesId]
+    const speciesB = SPECIES_CATALOG[b.speciesId]
+    return speciesA.nombre.localeCompare(speciesB.nombre)
+  })
+
+  return entries
+}
+
+function buildAveInputsFromAnimals(animals: Animal[]): AveInput[] {
   const aves: AveInput[] = []
 
-  for (const entry of entries) {
-    const species = SPECIES_CATALOG[entry.speciesId]
-    const quantity = Number.parseInt(entry.quantity, 10)
-    if (!species || !Number.isFinite(quantity) || quantity <= 0) continue
+  for (const animal of animals) {
+    if (animal.status !== 'activo') continue
+    const speciesId = resolveSpeciesId(animal)
+    const species = SPECIES_CATALOG[speciesId]
+    if (!species) continue
+    const phaseCandidate = animal.dietPhase
+    const hasPhase = phaseCandidate && species.dietas.some((diet) => diet.fase === phaseCandidate)
+    const phase = hasPhase ? (phaseCandidate as DietType) : getDefaultPhaseForSpecies(speciesId)
 
-    const weight = entry.weightKg.trim() === '' ? undefined : Number(entry.weightKg)
-    const layingRate = entry.layingRate.trim() === '' ? undefined : Number(entry.layingRate)
-    const eggWeight = entry.eggWeight.trim() === '' ? undefined : Number(entry.eggWeight)
-
-    for (let index = 0; index < quantity; index += 1) {
-      aves.push({
-        especie_id: entry.speciesId,
-        fase: entry.phase,
-        peso_vivo_kg: weight,
-        tasa_puesta: layingRate,
-        peso_huevo_g: eggWeight,
-      })
-    }
+    aves.push({
+      especie_id: speciesId,
+      fase: phase,
+      peso_vivo_kg: animal.weightKg,
+      tasa_puesta: animal.layingRate,
+      peso_huevo_g: animal.eggWeightGrams,
+    })
   }
 
   return aves
+}
+
+function parseOptionalNumber(value: string) {
+  if (value.trim() === '') return undefined
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
+async function syncAnimalsWithEntries(entries: LoteEntryForm[], animals: Animal[]) {
+  const activeAnimals = animals.filter((animal) => animal.status === 'activo')
+  const groups = new Map<string, Animal[]>()
+
+  for (const animal of activeAnimals) {
+    const speciesId = resolveSpeciesId(animal)
+    const species = SPECIES_CATALOG[speciesId]
+    if (!species) continue
+    const phaseCandidate = animal.dietPhase
+    const hasPhase = phaseCandidate && species.dietas.some((diet) => diet.fase === phaseCandidate)
+    const phase = hasPhase ? (phaseCandidate as DietType) : getDefaultPhaseForSpecies(speciesId)
+    const key = `${speciesId}|${phase}`
+    const list = groups.get(key)
+    if (list) {
+      list.push(animal)
+    } else {
+      groups.set(key, [animal])
+    }
+  }
+
+  const processed = new Set<string>()
+  const idsToDelete = new Set<string>()
+  const updates: Array<Promise<number>> = []
+  const additions: Animal[] = []
+  const now = nowIso()
+
+  for (const entry of entries) {
+    const quantity = Number.parseInt(entry.quantity, 10)
+    if (!Number.isFinite(quantity) || quantity < 0) continue
+    const species = SPECIES_CATALOG[entry.speciesId]
+    if (!species) continue
+    const phase = species.dietas.some((diet) => diet.fase === entry.phase)
+      ? entry.phase
+      : getDefaultPhaseForSpecies(entry.speciesId)
+    const key = `${entry.speciesId}|${phase}`
+    const group = groups.get(key) ?? []
+    const desired = quantity
+    const keep = Math.min(group.length, desired)
+    const weight = parseOptionalNumber(entry.weightKg)
+    const layingRate = parseOptionalNumber(entry.layingRate)
+    const eggWeight = parseOptionalNumber(entry.eggWeight)
+
+    for (let index = 0; index < keep; index += 1) {
+      const animal = group[index]
+      processed.add(animal.id)
+      updates.push(
+        db.animals.update(animal.id, {
+          type: SPECIES_TO_TYPE[entry.speciesId],
+          speciesId: entry.speciesId,
+          dietPhase: phase,
+          weightKg: weight,
+          layingRate,
+          eggWeightGrams: eggWeight,
+          updatedAt: now,
+        }),
+      )
+    }
+
+    if (group.length > desired) {
+      for (let index = desired; index < group.length; index += 1) {
+        idsToDelete.add(group[index].id)
+      }
+    } else if (group.length < desired) {
+      const missing = desired - group.length
+      for (let index = 0; index < missing; index += 1) {
+        additions.push({
+          id: crypto.randomUUID(),
+          type: SPECIES_TO_TYPE[entry.speciesId],
+          speciesId: entry.speciesId,
+          status: 'activo',
+          createdAt: now,
+          dietPhase: phase,
+          weightKg: weight,
+          layingRate,
+          eggWeightGrams: eggWeight,
+        })
+      }
+    }
+  }
+
+  for (const animal of activeAnimals) {
+    if (!processed.has(animal.id) && !idsToDelete.has(animal.id)) {
+      idsToDelete.add(animal.id)
+    }
+  }
+
+  if (updates.length > 0) {
+    await Promise.all(updates)
+  }
+
+  if (idsToDelete.size > 0) {
+    await db.animals.bulkDelete(Array.from(idsToDelete))
+  }
+
+  if (additions.length > 0) {
+    await db.animals.bulkAdd(additions)
+  }
 }
 
 interface AggregateBucket {
@@ -228,8 +396,15 @@ function csvEscape(value: string | number) {
 
 export default function Dashboard() {
   const [entorno, setEntorno] = useState<EntornoState>(DEFAULT_ENTORNO)
-  const [entries, setEntries] = useState<LoteEntryForm[]>([createEntry()])
+  const [entries, setEntries] = useState<LoteEntryForm[]>([])
   const [resultados, setResultados] = useState<DashboardResults | null>(null)
+  const [isDirty, setIsDirty] = useState(false)
+  const animals = useLiveQuery(() => db.animals.toArray(), [], []) ?? []
+
+  useEffect(() => {
+    if (isDirty) return
+    setEntries(buildEntriesFromAnimals(animals))
+  }, [animals, isDirty])
 
   const validation = useMemo(() => validateEntries(entries), [entries])
   const totalAves = validation.totalAves
@@ -242,17 +417,20 @@ export default function Dashboard() {
 
   const handleEntriesChange = (nextEntries: LoteEntryForm[]) => {
     setEntries(nextEntries)
+    setIsDirty(true)
   }
 
   const handleAddEntry = () => {
     setEntries((prev) => [...prev, createEntry()])
+    setIsDirty(true)
   }
 
   const handleRemoveEntry = (id: string) => {
     setEntries((prev) => prev.filter((entry) => entry.id !== id))
+    setIsDirty(true)
   }
 
-  const handleCalculate = () => {
+  const handleCalculate = async () => {
     if (entries.length === 0) {
       notify.info('Añade al menos una especie al lote.')
       return
@@ -267,13 +445,21 @@ export default function Dashboard() {
     }
 
     try {
-      const aves = buildAveInputs(entries)
+      await syncAnimalsWithEntries(entries, animals)
+      setIsDirty(false)
+      const latestAnimals = await db.animals.toArray()
+      const activeAnimals = latestAnimals.filter((animal) => animal.status === 'activo')
+      if (activeAnimals.length === 0) {
+        notify.error('No hay aves activas para calcular. Añade animales al lote.')
+        return
+      }
+      const aves = buildAveInputsFromAnimals(activeAnimals)
       const lote = calcularLote(
         {
           id: 'lote_ui',
           aves,
         },
-        { ...entorno, n_aves_total: totalAves },
+        { ...entorno, n_aves_total: activeAnimals.length },
       )
       const agregados = aggregateLote(lote)
       setResultados(agregados)
@@ -318,11 +504,18 @@ export default function Dashboard() {
     URL.revokeObjectURL(url)
   }
 
-  const handleReset = () => {
-    setEntorno(DEFAULT_ENTORNO)
-    setEntries([createEntry()])
-    setResultados(null)
-    notify.info('Parámetros restablecidos')
+  const handleReset = async () => {
+    try {
+      await db.animals.clear()
+      setEntorno(DEFAULT_ENTORNO)
+      setEntries([])
+      setResultados(null)
+      setIsDirty(false)
+      notify.info('Parámetros restablecidos')
+    } catch (error) {
+      console.error(error)
+      notify.error('No se pudo restablecer los datos.')
+    }
   }
 
   return (
@@ -333,14 +526,16 @@ export default function Dashboard() {
           <p className="text-gray-400">Plan de alimento y agua</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={handleCalculate}>Calcular</Button>
+          <Button onClick={() => { void handleCalculate() }}>Calcular</Button>
           <Button variant="outline" onClick={handleExport} disabled={!resultados}>
             Exportar CSV
           </Button>
           <Button
             variant="outline"
             className="border-none bg-transparent text-sm font-medium underline-offset-4 hover:bg-white/10 hover:underline"
-            onClick={handleReset}
+            onClick={() => {
+              void handleReset()
+            }}
           >
             Restablecer
           </Button>

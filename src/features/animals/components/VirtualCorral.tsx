@@ -9,38 +9,30 @@ import {
   KikoIcon,
   PavoIcon,
   PavoRealIcon,
-  PolloIcon,
-  PollitoIcon,
 } from './AnimalIcons'
 
 export const ANIMAL_TYPE_LABELS: Record<Animal['type'], string> = {
-  gallina: 'Gallina',
+  gallina: 'Gallina ponedora',
   gallo: 'Gallo',
-  kiko: 'Kiko',
-  kika: 'Kika',
-  pollo: 'Pollo',
-  pollito: 'Pollito',
-  pavo_hembra: 'Pavo (H)',
-  pavo_macho: 'Pavo (M)',
-  pavoreal_hembra: 'Pavo real (H)',
-  pavoreal_macho: 'Pavo real (M)',
-  otro: 'Otro',
+  kiko: 'Kiko (gallo enano)',
+  kika: 'Kika (gallina enana)',
+  pavo_hembra: 'Pavo hembra',
+  pavo_macho: 'Pavo macho',
+  pavoreal_hembra: 'Pavo real hembra',
+  pavoreal_macho: 'Pavo real macho',
 }
 
 type IconComponent = (props: SVGProps<SVGSVGElement>) => JSX.Element
 
-const ICONS: Record<Animal['type'], IconComponent> = {
+const ICONS: Partial<Record<Animal['type'], IconComponent>> = {
   gallina: GallinaIcon,
   gallo: GalloIcon,
   kiko: KikoIcon,
   kika: KikaIcon,
-  pollo: PolloIcon,
-  pollito: PollitoIcon,
   pavo_hembra: PavoIcon,
   pavo_macho: PavoIcon,
   pavoreal_hembra: PavoRealIcon,
   pavoreal_macho: PavoRealIcon,
-  otro: GenericBirdIcon,
 }
 
 const DEFAULT_SIZE = 320
@@ -72,7 +64,9 @@ export function VirtualCorral({ animals }: { animals: Animal[] }) {
 
   const sorted = useMemo(() => {
     return [...animals].sort((a, b) => {
-      const typeCompare = ANIMAL_TYPE_LABELS[a.type].localeCompare(ANIMAL_TYPE_LABELS[b.type])
+      const labelA = ANIMAL_TYPE_LABELS[a.type] ?? 'Ave'
+      const labelB = ANIMAL_TYPE_LABELS[b.type] ?? 'Ave'
+      const typeCompare = labelA.localeCompare(labelB)
       if (typeCompare !== 0) return typeCompare
       return (a.tag ?? a.id).localeCompare(b.tag ?? b.id)
     })
@@ -257,7 +251,7 @@ export function VirtualCorral({ animals }: { animals: Animal[] }) {
               style={style}
             >
               <Icon
-                aria-label={ANIMAL_TYPE_LABELS[animal.type]}
+                aria-label={ANIMAL_TYPE_LABELS[animal.type] ?? 'Ave'}
                 width={iconSize * 0.82}
                 height={iconSize * 0.82}
               />

@@ -3,13 +3,10 @@ export type AnimalType =
   | 'gallo'
   | 'kika'
   | 'kiko'
-  | 'pollo'
-  | 'pollito'
   | 'pavo_hembra'
   | 'pavo_macho'
   | 'pavoreal_hembra'
   | 'pavoreal_macho'
-  | 'otro'
 
 export type AnimalStatus = 'activo' | 'vendido' | 'muerto'
 

@@ -160,18 +160,34 @@ export const SPECIES_CATALOG: Record<SpeciesId, SpeciesDefinition> = {
   },
 }
 
-const TYPE_TO_SPECIES: Record<AnimalType, SpeciesId> = {
+export const TYPE_TO_SPECIES: Record<AnimalType, SpeciesId> = {
   gallina: 'gallina_ponedora',
   gallo: 'gallo',
   kika: 'kika',
   kiko: 'kiko',
-  pollo: 'gallina_ponedora',
-  pollito: 'gallina_ponedora',
   pavo_hembra: 'pavo_hembra',
   pavo_macho: 'pavo_macho',
   pavoreal_hembra: 'pavoreal_hembra',
   pavoreal_macho: 'pavoreal_macho',
-  otro: 'gallina_ponedora',
+}
+
+export const SPECIES_TO_TYPE: Record<SpeciesId, AnimalType> = {
+  gallina_ponedora: 'gallina',
+  gallo: 'gallo',
+  kika: 'kika',
+  kiko: 'kiko',
+  pavo_hembra: 'pavo_hembra',
+  pavo_macho: 'pavo_macho',
+  pavoreal_hembra: 'pavoreal_hembra',
+  pavoreal_macho: 'pavoreal_macho',
+}
+
+export function getDefaultPhaseForSpecies(speciesId: SpeciesId): DietType {
+  const species = SPECIES_CATALOG[speciesId]
+  if (!species) {
+    return 'layer'
+  }
+  return species.defaults?.fase ?? species.dietas[0]?.fase ?? 'layer'
 }
 
 const DEFAULT_ME_POR_FASE: Partial<Record<DietType, number>> = {

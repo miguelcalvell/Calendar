@@ -1,12 +1,19 @@
 import type { DietType } from '@/types'
 
+const DIET_LABELS: Record<DietType, string> = {
+  starter: 'Inicio',
+  grower: 'Crecimiento',
+  finisher: 'Terminación',
+  layer: 'Postura',
+  breeder: 'Reproductoras',
+  allflock: 'Mixto',
+  adulto: 'Adulto',
+  gamebird_adulto: 'Aves de ornato adultas',
+}
+
 export function formatDietLabel(fase: DietType | string) {
-  switch (fase) {
-    case 'allflock':
-      return 'All-flock'
-    case 'gamebird_adulto':
-      return 'Gamebird adulto'
-    default:
-      return fase.charAt(0).toUpperCase() + fase.slice(1)
+  if (fase in DIET_LABELS) {
+    return DIET_LABELS[fase as DietType]
   }
+  return fase
 }

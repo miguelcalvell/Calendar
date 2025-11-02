@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { SPECIES_CATALOG, type SpeciesDefinition } from '@/lib/calc'
 import type { DietType, SpeciesId } from '@/types'
+import { formatDietLabel } from '../utils'
 
 export interface LoteEntryForm {
   id: string
@@ -122,11 +123,7 @@ export function LoteEditor({ entries, errors, totalAves, m2PorAve, onChange, onA
                         <SelectContent>
                           {dietOptions.map((diet) => (
                             <SelectItem key={`${entry.id}-${diet.fase}`} value={diet.fase}>
-                              {diet.fase === 'allflock'
-                                ? 'All-flock'
-                                : diet.fase === 'gamebird_adulto'
-                                ? 'Gamebird adulto'
-                                : diet.fase.charAt(0).toUpperCase() + diet.fase.slice(1)}
+                              {formatDietLabel(diet.fase)}
                             </SelectItem>
                           ))}
                         </SelectContent>

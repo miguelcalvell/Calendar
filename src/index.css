@@ -3,17 +3,41 @@
 @tailwind utilities;
 html, body, #root { height: 100%; }
 
-@keyframes corral-drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
+@keyframes corral-orbit {
+  0% {
+    transform: translate3d(0, calc(var(--orbit-radius, 6px) * -1), 0);
+  }
+  12.5% {
+    transform: translate3d(calc(var(--orbit-radius, 6px) * 0.7), calc(var(--orbit-radius, 6px) * -0.7), 0);
+  }
+  25% {
+    transform: translate3d(calc(var(--orbit-radius, 6px) * 1), 0, 0);
+  }
+  37.5% {
+    transform: translate3d(calc(var(--orbit-radius, 6px) * 0.7), calc(var(--orbit-radius, 6px) * 0.7), 0);
   }
   50% {
-    transform: translate3d(var(--float-x, 2px), var(--float-y, -2px), 0);
+    transform: translate3d(0, calc(var(--orbit-radius, 6px) * 1), 0);
+  }
+  62.5% {
+    transform: translate3d(calc(var(--orbit-radius, 6px) * -0.7), calc(var(--orbit-radius, 6px) * 0.7), 0);
+  }
+  75% {
+    transform: translate3d(calc(var(--orbit-radius, 6px) * -1), 0, 0);
+  }
+  87.5% {
+    transform: translate3d(calc(var(--orbit-radius, 6px) * -0.7), calc(var(--orbit-radius, 6px) * -0.7), 0);
+  }
+  100% {
+    transform: translate3d(0, calc(var(--orbit-radius, 6px) * -1), 0);
   }
 }
 
 .corral-float {
-  animation: corral-drift 12s ease-in-out infinite;
+  animation-name: corral-orbit;
+  animation-duration: var(--orbit-duration, 14s);
+  animation-timing-function: linear;
+  animation-delay: var(--orbit-delay, 0s);
+  animation-iteration-count: infinite;
   will-change: transform;
 }

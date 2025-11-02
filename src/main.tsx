@@ -6,20 +6,17 @@ import { Toaster } from 'sonner'
 import { AppLayout } from './app/layout'
 import { routes } from './app/routes'
 import { I18nProvider } from './lib/i18n'
-// 🔧 Si quieres aislar SW mientras resolvemos negro, comenta la siguiente línea:
+// ❌ PWA desactivado para evitar cachés antiguas
 // import { useRegisterSW } from './lib/pwa'
-import { ErrorBoundary } from './app/ErrorBoundary'
 
 const router = createHashRouter(routes)
 
 function Root() {
-  // useRegisterSW() // ← comenta temporalmente si sospechas del SW
+  // useRegisterSW()
   return (
     <I18nProvider>
       <AppLayout>
-        <ErrorBoundary>
-          <RouterProvider router={router} />
-        </ErrorBoundary>
+        <RouterProvider router={router} />
         <Toaster richColors closeButton />
       </AppLayout>
     </I18nProvider>

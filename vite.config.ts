@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// ⚠️ Ruta exacta del repo en GitHub Pages (sensible a mayúsculas)
-const base = '/Calendar/'
+// ✅ Usamos base relativa: Vite generará "assets/..." (relativos a /Calendar/)
+const base = './'
 
 export default defineConfig({
   base,
@@ -27,8 +27,9 @@ export default defineConfig({
         background_color: '#111827',
         display: 'standalone',
         lang: 'es',
-        start_url: base,
-        scope: base,
+        // Para instalación PWA en Pages, el start_url/scope siguen apuntando al subpath del repo
+        start_url: '/Calendar/',
+        scope: '/Calendar/',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
@@ -38,9 +39,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
         navigateFallback: 'index.html',
-        cleanupOutdatedCaches: true,     // 💥 purga cachés antiguos
-        clientsClaim: true,              // toma control al activar
-        skipWaiting: true                // activa SW nuevo sin esperar
+        // 🔧 Evita que un SW viejo sirva bundles anteriores
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true
       }
     })
   ],

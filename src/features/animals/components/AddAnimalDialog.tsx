@@ -9,7 +9,9 @@ import { notify } from '@/lib/notifications'
 import { useState } from 'react'
 
 export function AddAnimalDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean)=>void }){
-  const [type, setType] = useState<'gallina'|'gallo'|'pollito'|'otro'>('gallina')
+  const [type, setType] = useState<
+    'gallina' | 'gallo' | 'pollo' | 'pollito' | 'pavo' | 'kiko' | 'pavo_real' | 'otro'
+  >('gallina')
   const [count, setCount] = useState(1)
   const [tag, setTag] = useState('')
   const addAnimals = async () => {
@@ -28,7 +30,16 @@ export function AddAnimalDialog({ open, onOpenChange }: { open: boolean; onOpenC
         <div className="space-y-1"><label className="text-sm">Tipo</label>
           <Select value={type} onValueChange={(v)=>setType(v as any)}>
             <SelectTrigger><SelectValue placeholder="Tipo"/></SelectTrigger>
-            <SelectContent><SelectItem value="gallina">Gallina</SelectItem><SelectItem value="gallo">Gallo</SelectItem><SelectItem value="pollito">Pollito</SelectItem><SelectItem value="otro">Otro</SelectItem></SelectContent>
+            <SelectContent>
+              <SelectItem value="gallina">Gallina</SelectItem>
+              <SelectItem value="gallo">Gallo</SelectItem>
+              <SelectItem value="pollo">Pollo</SelectItem>
+              <SelectItem value="pollito">Pollito</SelectItem>
+              <SelectItem value="pavo">Pavo</SelectItem>
+              <SelectItem value="kiko">Kiko</SelectItem>
+              <SelectItem value="pavo_real">Pavo real</SelectItem>
+              <SelectItem value="otro">Otro</SelectItem>
+            </SelectContent>
           </Select>
         </div>
         <div className="space-y-1"><label htmlFor="count" className="text-sm">Cantidad</label>

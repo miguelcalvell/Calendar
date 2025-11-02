@@ -1,4 +1,12 @@
-export type AnimalType='gallina'|'gallo'|'pollito'|'otro'
+export type AnimalType=
+  | 'gallina'
+  | 'gallo'
+  | 'pollo'
+  | 'pollito'
+  | 'pavo'
+  | 'kiko'
+  | 'pavo_real'
+  | 'otro'
 export type AnimalStatus='activo'|'vendido'|'muerto'
 export interface Animal{ id:string; type:AnimalType; tag?:string; status:AnimalStatus; createdAt:string; updatedAt?:string }
 export interface MaintenanceTask{ id:string; type:'limpieza'|'agua'|'alimento'|'desinfeccion'|'reparacion'; scheduledFor?:string; completedAt?:string; status:'pendiente'|'hecho'; notes?:string }

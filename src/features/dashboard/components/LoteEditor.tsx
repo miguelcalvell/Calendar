@@ -133,11 +133,15 @@ export function LoteEditor({ entries, errors, totalAves, m2PorAve, onChange, onA
                     <div className="space-y-1">
                       <label className="text-sm font-medium">Cantidad</label>
                       <Input
-                        type="number"
-                        min={1}
-                        step={1}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        placeholder="1"
                         value={entry.quantity}
-                        onChange={(event) => updateEntry(entry.id, { quantity: event.target.value })}
+                        onChange={(event) => {
+                          const value = event.target.value.replace(/[^0-9]/g, '')
+                          updateEntry(entry.id, { quantity: value })
+                        }}
                       />
                       {entryErrors.quantity ? <p className="text-xs text-red-400">{entryErrors.quantity}</p> : null}
                     </div>

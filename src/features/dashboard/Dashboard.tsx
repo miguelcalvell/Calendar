@@ -505,6 +505,10 @@ export default function Dashboard() {
   }
 
   const handleReset = async () => {
+    const confirmed = window.confirm(
+      'Restablecer eliminará todas las aves del corral y reiniciará los parámetros. ¿Quieres continuar?',
+    )
+    if (!confirmed) return
     try {
       await db.animals.clear()
       setEntorno(DEFAULT_ENTORNO)

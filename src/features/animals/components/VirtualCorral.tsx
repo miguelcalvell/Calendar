@@ -48,7 +48,12 @@ interface PositionedAnimal {
   orbitDelay: number
 }
 
-export function VirtualCorral({ animals }: { animals: Animal[] }) {
+interface VirtualCorralProps {
+  animals: Animal[]
+  onRemoveAnimal?: (animal: Animal) => void
+}
+
+export function VirtualCorral({ animals, onRemoveAnimal }: VirtualCorralProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerSize, setContainerSize] = useState(DEFAULT_SIZE)
 
@@ -250,6 +255,16 @@ export function VirtualCorral({ animals }: { animals: Animal[] }) {
               className="absolute flex items-center justify-center rounded-full bg-slate-950/70 shadow-lg ring-1 ring-amber-200/50 corral-float"
               style={style}
             >
+              {onRemoveAnimal ? (
+                <button
+                  type="button"
+                  onClick={() => onRemoveAnimal(animal)}
+                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-rose-600 text-xs font-bold text-white shadow"
+                  aria-label={`Eliminar ${ANIMAL_TYPE_LABELS[animal.type] ?? 'ave'}`}
+                >
+                  ×
+                </button>
+              ) : null}
               <Icon
                 aria-label={ANIMAL_TYPE_LABELS[animal.type] ?? 'Ave'}
                 width={iconSize * 0.82}

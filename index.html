@@ -3,41 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="manifest" href="manifest.webmanifest" />
     <meta name="theme-color" content="#111827" />
     <title>Gallinero</title>
   </head>
   <body class="bg-black text-white">
     <div id="root"><noscript>Necesitas habilitar JavaScript.</noscript></div>
-
-    <!-- 1) Asegura HashRouter -->
-    <script>
-      (function () {
-        if (!location.hash) {
-          var href = location.href;
-          if (!href.endsWith('/')) href += '/';
-          location.replace(href + '#/');
-        }
-      })();
-    </script>
-
-    <!-- 2) Bootstrap INFALIBLE:
-           - En dev, importa el entry de Vite
-           - En Pages, importa el bundle con nombre estable: assets/app.js -->
-    <script type="module">
-      const isProd = location.hostname.endsWith('github.io');
-      const load = isProd ? import('./assets/app.js') : import('/src/main.tsx');
-      load.catch(err => {
-        const root = document.getElementById('root');
-        if (root) {
-          root.innerHTML =
-            '<div style="max-width:720px;margin:32px auto;padding:16px;background:#1f2937;border-radius:8px;font-family:system-ui;color:#e5e7eb">' +
-            '<h1 style="margin:0 0 8px">Error cargando JS</h1>' +
-            '<pre style="white-space:pre-wrap;font-size:12px">' + String(err) + '</pre>' +
-            '</div>';
-        }
-        console.error('Boot error', err);
-      });
-    </script>
+    <!-- Vite lo reescribe en build a /Calendar/assets/app.js -->
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -16,12 +16,14 @@ import {
 export const ANIMAL_TYPE_LABELS: Record<Animal['type'], string> = {
   gallina: 'Gallina',
   gallo: 'Gallo',
-  pollo: 'Pollo',
-  pollito: 'Pollito',
-  pavo: 'Pavo',
   kiko: 'Kiko',
   kika: 'Kika',
-  pavo_real: 'Pavo real',
+  pollo: 'Pollo',
+  pollito: 'Pollito',
+  pavo_hembra: 'Pavo (H)',
+  pavo_macho: 'Pavo (M)',
+  pavoreal_hembra: 'Pavo real (H)',
+  pavoreal_macho: 'Pavo real (M)',
   otro: 'Otro',
 }
 
@@ -30,12 +32,14 @@ type IconComponent = (props: SVGProps<SVGSVGElement>) => JSX.Element
 const ICONS: Record<Animal['type'], IconComponent> = {
   gallina: GallinaIcon,
   gallo: GalloIcon,
-  pollo: PolloIcon,
-  pollito: PollitoIcon,
-  pavo: PavoIcon,
   kiko: KikoIcon,
   kika: KikaIcon,
-  pavo_real: PavoRealIcon,
+  pollo: PolloIcon,
+  pollito: PollitoIcon,
+  pavo_hembra: PavoIcon,
+  pavo_macho: PavoIcon,
+  pavoreal_hembra: PavoRealIcon,
+  pavoreal_macho: PavoRealIcon,
   otro: GenericBirdIcon,
 }
 

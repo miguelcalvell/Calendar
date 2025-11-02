@@ -1,12 +1,14 @@
 export type AnimalType =
   | 'gallina'
   | 'gallo'
+  | 'kika'
+  | 'kiko'
   | 'pollo'
   | 'pollito'
-  | 'pavo'
-  | 'kiko'
-  | 'kika'
-  | 'pavo_real'
+  | 'pavo_hembra'
+  | 'pavo_macho'
+  | 'pavoreal_hembra'
+  | 'pavoreal_macho'
   | 'otro'
 
 export type AnimalStatus = 'activo' | 'vendido' | 'muerto'
@@ -17,30 +19,30 @@ export type DietType =
   | 'finisher'
   | 'layer'
   | 'breeder'
-  | 'all_flock'
-  | 'gamebird'
+  | 'allflock'
+  | 'adulto'
+  | 'gamebird_adulto'
 
-export type BirdProfileId =
-  | 'layer_hen'
-  | 'rooster'
-  | 'chicken_grower'
-  | 'chick_starter'
-  | 'bantam_hen'
-  | 'bantam_rooster'
-  | 'turkey_hen'
-  | 'turkey_tom'
-  | 'peafowl_hen'
-  | 'peafowl_cock'
-  | 'generic_bird'
+export type SpeciesId =
+  | 'gallina_ponedora'
+  | 'gallo'
+  | 'kika'
+  | 'kiko'
+  | 'pavo_hembra'
+  | 'pavo_macho'
+  | 'pavoreal_hembra'
+  | 'pavoreal_macho'
+
+export type ExtendedSpeciesId = SpeciesId | 'generica'
 
 export interface Animal {
   id: string
   type: AnimalType
+  speciesId?: SpeciesId
   tag?: string
   status: AnimalStatus
   createdAt: string
   updatedAt?: string
-  profileId?: BirdProfileId
   weightKg?: number
   dietPhase?: DietType
   layingRate?: number

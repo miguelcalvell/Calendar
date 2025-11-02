@@ -20,7 +20,7 @@ export default function Dashboard(){
     notify.success('Limpieza marcada para hoy')
   }
   const intake = useMemo(
-    () => calculateFarmIntake(animals ?? [], { environment: DEFAULT_ENVIRONMENT }),
+    () => calculateFarmIntake(animals ?? [], { entorno: DEFAULT_ENVIRONMENT }),
     [animals]
   )
   const feedG = intake.totals.feed.finalGramsPerDay

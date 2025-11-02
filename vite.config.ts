@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const base = process.env.BASE_PATH || '/Calendar/'
+// ⚠️ Ruta exacta del repo en GitHub Pages (sensible a mayúsculas)
+const base = '/Calendar/'
 
 export default defineConfig({
   base,
@@ -36,7 +37,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
-        navigateFallback: 'index.html'
+        navigateFallback: 'index.html',
+        cleanupOutdatedCaches: true,     // 💥 purga cachés antiguos
+        clientsClaim: true,              // toma control al activar
+        skipWaiting: true                // activa SW nuevo sin esperar
       }
     })
   ],

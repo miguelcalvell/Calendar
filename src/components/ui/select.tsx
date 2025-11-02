@@ -29,17 +29,22 @@ SelectTrigger.displayName = 'SelectTrigger'
 export const SelectContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Content
-    ref={ref}
-    className={cn(
-      'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-neutral-900 text-white shadow-md',
-      className
-    )}
-    {...props}
-  >
-    <SelectPrimitive.Viewport className="p-1">{children}</SelectPrimitive.Viewport>
-  </SelectPrimitive.Content>
+>(({ className, children, sideOffset = 4, position = 'popper', ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      sideOffset={sideOffset}
+      position={position}
+      className={cn(
+        'z-50 min-w-[8rem] overflow-hidden rounded-md border bg-neutral-900 text-white shadow-md',
+        'max-h-60 overflow-y-auto',
+        className
+      )}
+      {...props}
+    >
+      <SelectPrimitive.Viewport className="p-1">{children}</SelectPrimitive.Viewport>
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
 ))
 SelectContent.displayName = 'SelectContent'
 

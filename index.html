@@ -3,9 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- ✅ Ayuda a que TODOS los paths relativos apunten a /Calendar/ -->
+    <!-- ✅ Fuerza que los paths relativos apunten a /Calendar/ -->
     <base href="/Calendar/">
-    <!-- Manifest referenciado de forma relativa -->
     <link rel="manifest" href="manifest.webmanifest" />
     <meta name="theme-color" content="#111827" />
     <title>Gallinero</title>
@@ -13,32 +12,14 @@
   <body class="bg-black text-white">
     <div id="root"><noscript>Necesitas habilitar JavaScript.</noscript></div>
 
-    <!-- ✅ Bootstrap HashRouter y diagnóstico + fallback de carga -->
+    <!-- Bootstrap HashRouter + diagnóstico -->
     <script>
       (function () {
-        // 1) Si entras sin hash, fuerza "#/"
         if (!location.hash) {
           var href = location.href;
           if (!href.endsWith('/')) href += '/';
           location.replace(href + '#/');
         }
-
-        // 2) Si Vite no inyectó (por cualquier motivo) el <script type="module"> final,
-        //    intenta cargar el primer "modulepreload" como entry.
-        window.addEventListener('DOMContentLoaded', function () {
-          var hasModuleScript = !!document.querySelector('script[type="module"][src*="assets/"]')
-          if (!hasModuleScript) {
-            var mp = document.querySelector('link[rel="modulepreload"][href*="assets/"]')
-            if (mp) {
-              var s = document.createElement('script')
-              s.type = 'module'
-              s.src = mp.getAttribute('href')
-              document.head.appendChild(s)
-            }
-          }
-        })
-
-        // 3) Si en 3s React no montó nada, muestra aviso visible (en lugar de “todo negro”)
         window.addEventListener('load', function () {
           setTimeout(function () {
             var root = document.getElementById('root');
@@ -55,7 +36,7 @@
       })();
     </script>
 
-    <!-- ✅ En dev esto apunta a /src/main.tsx; en build Vite lo transforma a assets/... relativos -->
-    <script type="module" src="/src/main.tsx"></script>
+    <!-- ✅ IMPORTANTE: ruta RELATIVA al entry para que en build sea "assets/..." -->
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>

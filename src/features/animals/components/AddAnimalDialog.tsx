@@ -10,7 +10,7 @@ import { useState } from 'react'
 
 export function AddAnimalDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean)=>void }){
   const [type, setType] = useState<
-    'gallina' | 'gallo' | 'pollo' | 'pollito' | 'pavo' | 'kiko' | 'pavo_real' | 'otro'
+    'gallina' | 'gallo' | 'pollo' | 'pollito' | 'pavo' | 'kiko' | 'kika' | 'pavo_real' | 'otro'
   >('gallina')
   const [count, setCount] = useState(1)
   const [tag, setTag] = useState('')
@@ -37,6 +37,7 @@ export function AddAnimalDialog({ open, onOpenChange }: { open: boolean; onOpenC
               <SelectItem value="pollito">Pollito</SelectItem>
               <SelectItem value="pavo">Pavo</SelectItem>
               <SelectItem value="kiko">Kiko</SelectItem>
+              <SelectItem value="kika">Kika</SelectItem>
               <SelectItem value="pavo_real">Pavo real</SelectItem>
               <SelectItem value="otro">Otro</SelectItem>
             </SelectContent>

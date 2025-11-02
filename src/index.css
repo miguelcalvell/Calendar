@@ -2,3 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 html, body, #root { height: 100%; }
+
+@keyframes corral-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(var(--float-x, 2px), var(--float-y, -2px), 0);
+  }
+}
+
+.corral-float {
+  animation: corral-drift 12s ease-in-out infinite;
+  will-change: transform;
+}

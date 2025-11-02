@@ -12,6 +12,13 @@ export interface DietPhaseSpec {
 export type SpeciesGroup = 'gallina' | 'pavo' | 'otro'
 export type SpeciesSex = 'macho' | 'hembra' | 'mixto'
 
+interface SpeciesReproductionBounds {
+  tasa_min?: number
+  tasa_max?: number
+  peso_huevo_min?: number
+  peso_huevo_max?: number
+}
+
 export interface SpeciesDefinition {
   id: SpeciesId
   nombre: string
@@ -21,6 +28,8 @@ export interface SpeciesDefinition {
   dietas: DietPhaseSpec[]
   grupo: SpeciesGroup
   sexo: SpeciesSex
+  k_MEm?: number
+  reproduction?: SpeciesReproductionBounds
   defaults?: {
     fase?: DietType
     tasa_puesta?: number
@@ -65,6 +74,11 @@ export const SPECIES_CATALOG: Record<SpeciesId, SpeciesDefinition> = {
     k_forage: 0.35,
     grupo: 'gallina',
     sexo: 'hembra',
+    k_MEm: 100,
+    reproduction: {
+      tasa_max: 0.65,
+      peso_huevo_max: 42,
+    },
     defaults: { fase: 'layer', tasa_puesta: 0.65, peso_huevo_g: 42 },
     dietas: [
       { fase: 'layer', pb_min_pct: 16, ca_min_pct: 3.5, ca_max_pct: 4, me_kcal_kg: 2800 },
@@ -323,11 +337,26 @@ function calcularAve(
   const diet = resolveDietSpec(species, fase)
   const meDieta = resolveME(species, diet)
 
-  const tasaPuesta = clamp(ave.tasa_puesta ?? species.defaults?.tasa_puesta ?? 0, 0, 1)
-  const pesoHuevo = Math.max(0, ave.peso_huevo_g ?? species.defaults?.peso_huevo_g ?? 0)
+  let tasaPuesta = clamp(ave.tasa_puesta ?? species.defaults?.tasa_puesta ?? 0, 0, 1)
+  let pesoHuevo = Math.max(0, ave.peso_huevo_g ?? species.defaults?.peso_huevo_g ?? 0)
+  if (species.reproduction) {
+    const { tasa_min, tasa_max, peso_huevo_min, peso_huevo_max } = species.reproduction
+    if (typeof tasa_min === 'number') {
+      tasaPuesta = Math.max(tasa_min, tasaPuesta)
+    }
+    if (typeof tasa_max === 'number') {
+      tasaPuesta = Math.min(tasa_max, tasaPuesta)
+    }
+    if (typeof peso_huevo_min === 'number') {
+      pesoHuevo = Math.max(peso_huevo_min, pesoHuevo)
+    }
+    if (typeof peso_huevo_max === 'number') {
+      pesoHuevo = Math.min(peso_huevo_max, pesoHuevo)
+    }
+  }
   const actividad = ave.actividad_factor ?? entorno.f_actividad
 
-  const mantenimiento = constantes.k_MEm * Math.pow(peso, 0.75)
+  const mantenimiento = (species.k_MEm ?? constantes.k_MEm) * Math.pow(peso, 0.75)
   const energiaHuevo = constantes.k_e_huevo * tasaPuesta * pesoHuevo
   const energiaTotal = mantenimiento * actividad + energiaHuevo
 
@@ -395,7 +424,7 @@ export function calcularLote(
       resumen_agua_L_dia: 0,
       reduccion_pastoreo_pct: 0,
       detalle_aves: [],
-      alertas_globales,
+      alertas_globales: alertasGlobales,
     }
   }
 

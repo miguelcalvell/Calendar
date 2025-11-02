@@ -7,6 +7,7 @@ import {
   gramsToKg,
   mlToL,
 } from './calc'
+import type { EntornoEjecucion, LoteInput } from './calc'
 
 const HEAT_ALERT = 'Calor: incrementar agua (+30–50%), sombreo y ventilación.'
 const LAYER_ALERT = "Dieta 'layer' inapropiada (Ca alto). Usar all-flock y calcio libre aparte para hembras."
@@ -19,7 +20,7 @@ const BASE_ENTORNO = {
   area_finca_m2: 10,
   n_aves_total: 1,
   f_actividad: 1,
-}
+} satisfies EntornoEjecucion
 
 describe('motor nutricional determinista', () => {
   it('calcula la ingesta base de una gallina ponedora sin pastoreo', () => {
@@ -35,7 +36,7 @@ describe('motor nutricional determinista', () => {
           peso_huevo_g: 58,
         },
       ],
-    }
+    } satisfies LoteInput
 
     const resultado = calcularLote(lote, entorno, DEFAULT_CONSTANTES)
     const ave = resultado.detalle_aves[0]
@@ -58,7 +59,7 @@ describe('motor nutricional determinista', () => {
           peso_huevo_g: 58,
         },
       ],
-    }
+    } satisfies LoteInput
 
     const resultado = calcularLote(lote, entorno, DEFAULT_CONSTANTES)
     const ave = resultado.detalle_aves[0]
@@ -80,7 +81,7 @@ describe('motor nutricional determinista', () => {
           fase: 'allflock',
         },
       ],
-    }
+    } satisfies LoteInput
 
     const resultado = calcularLote(lote, entorno, DEFAULT_CONSTANTES)
     const ave = resultado.detalle_aves[0]
@@ -103,7 +104,7 @@ describe('motor nutricional determinista', () => {
           peso_huevo_g: 58,
         },
       ],
-    }
+    } satisfies LoteInput
 
     const resultado = calcularLote(lote, entorno, DEFAULT_CONSTANTES)
     const ave = resultado.detalle_aves[0]
@@ -124,7 +125,7 @@ describe('motor nutricional determinista', () => {
           fase: 'adulto',
         },
       ],
-    }
+    } satisfies LoteInput
 
     const resultado = calcularLote(lote, entorno, DEFAULT_CONSTANTES)
     const ave = resultado.detalle_aves[0]
@@ -145,7 +146,7 @@ describe('motor nutricional determinista', () => {
           fase: 'gamebird_adulto',
         },
       ],
-    }
+    } satisfies LoteInput
 
     const resultado = calcularLote(lote, entorno, DEFAULT_CONSTANTES)
     const ave = resultado.detalle_aves[0]
@@ -168,7 +169,7 @@ describe('motor nutricional determinista', () => {
           peso_huevo_g: 58,
         },
       ],
-    }
+    } satisfies LoteInput
 
     const resultado = calcularLote(lote, entorno, DEFAULT_CONSTANTES)
     const ave = resultado.detalle_aves[0]
@@ -189,7 +190,7 @@ describe('motor nutricional determinista', () => {
           fase: 'layer',
         },
       ],
-    }
+    } satisfies LoteInput
 
     const resultado = calcularLote(lote, entorno, DEFAULT_CONSTANTES)
     const ave = resultado.detalle_aves[0]
